@@ -47,7 +47,7 @@ TitleBarTest::TitleBarTest(QWidget *parent) :
     QAction *colorChange = new QAction(tr("Color"), this);
     connect(colorChange, SIGNAL(triggered()), this, SLOT(chooseColor()));
     addAction(colorChange);
-//    setContextMenuPolicy(Qt::ActionsContextMenu);
+    setContextMenuPolicy(Qt::ActionsContextMenu);
 }
 
 TitleBarTest::~TitleBarTest()
