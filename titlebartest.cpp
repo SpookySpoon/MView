@@ -1,3 +1,4 @@
+#include <QContextMenuEvent>
 #include <QSettings>
 #include <QColorDialog>
 #include <QHoverEvent>
@@ -47,7 +48,7 @@ TitleBarTest::TitleBarTest(QWidget *parent) :
     QAction *colorChange = new QAction(tr("Color"), this);
     connect(colorChange, SIGNAL(triggered()), this, SLOT(chooseColor()));
     addAction(colorChange);
-    setContextMenuPolicy(Qt::ActionsContextMenu);
+    setContextMenuPolicy(Qt::DefaultContextMenu);
 }
 
 TitleBarTest::~TitleBarTest()
@@ -130,32 +131,28 @@ void TitleBarTest::mouseMoveEvent(QMouseEvent *event)
         event->accept();
         return;
     }
-    QSize nSize=size();
-    int dx=0,dy=0;
     if(changeWidthLeft)
     {
-        dx=wPos.x()-std::min(cPos.x(),wPos.x()+width()-minimumWidth())-dx;
-        wPos.setX(std::min(cPos.x(),wPos.x()+width()-minimumWidth()));
-        this->move(wPos);
+        QRect opa=geometry();
+        opa.setLeft(std::min(cPos.x(),wPos.x()+width()-minimumWidth()));
+        this->setGeometry((opa));
     }
     if(changeWidthRight)
     {
-        dx=cPos.x()-wPos.x()-width();
+        int dx=cPos.x()-wPos.x()-width();
+        this->resize(width()+dx,height());
     }
     if(changeHeightTop)
     {
-        dy=wPos.y()-std::min(cPos.y(),wPos.y()+height()-minimumHeight())-dy;
-        wPos.setY(std::min(cPos.y(),wPos.y()+height()-minimumHeight()));
-        this->move(wPos);
+        QRect opa=geometry();
+        opa.setTop(std::min(cPos.y(),wPos.y()+height()-minimumHeight()));
+        this->setGeometry((opa));
     }
     if(changeHeightBottom)
     {
-        dy=cPos.y()-wPos.y()-height();
+        int dy=cPos.y()-wPos.y()-height();
+        this->resize(width(),height()+dy);
     }
-    nSize.setWidth(nSize.width()+dx);
-    nSize.setHeight(nSize.height()+dy);
-    this->resize(nSize);
-
     this->setCursor(opaCurs);
 
 }
@@ -197,6 +194,11 @@ bool TitleBarTest::eventFilter(QObject *object, QEvent *event)
         return true;
     }
     return false;
+}
+
+void TitleBarTest::contextMenuEvent(QContextMenuEvent *event)
+{
+
 }
 
 void TitleBarTest::on_buttonClose_clicked()
