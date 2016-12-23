@@ -47,7 +47,7 @@ TitleBarTest::TitleBarTest(QWidget *parent) :
     QAction *colorChange = new QAction(tr("Color"), this);
     connect(colorChange, SIGNAL(triggered()), this, SLOT(chooseColor()));
     addAction(colorChange);
-    setContextMenuPolicy(Qt::ActionsContextMenu);
+//    setContextMenuPolicy(Qt::ActionsContextMenu);
 }
 
 TitleBarTest::~TitleBarTest()
@@ -65,6 +65,7 @@ TitleBarTest::~TitleBarTest()
 
 void TitleBarTest::chooseColor()
 {
+
     QColor color= QColorDialog::getColor(Qt::green, this);
     QPalette pal =palette();
     pal.setColor(QPalette::Background,
@@ -164,12 +165,6 @@ void TitleBarTest::mouseMoveEvent(QMouseEvent *event)
 bool TitleBarTest::eventFilter(QObject *object, QEvent *event)
 {
     QPoint cPos=QCursor::pos();
-//    if(this!=object)
-//    {
-//        opaCurs.setShape(Qt::ArrowCursor);
-//        return object->eventFilter(object,event);
-//    }
-
     QPoint wPos=frameGeometry().topLeft();
     if (object == this && event->type() == QEvent::HoverMove&&!mPressedMark) {
         bool right = wPos.x()+width()-cPos.x()<5;
