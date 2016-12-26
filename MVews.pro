@@ -11,13 +11,17 @@ TARGET = MVews
 TEMPLATE = app
 
 SOURCES += main.cpp \
-    titlebartest.cpp
+    titlebartest.cpp \
+    virtualframe.cpp \
+    actionmanager.cpp
 
 FORMS += \
     titlebartest.ui
 
 HEADERS += \
-    titlebartest.h
+    titlebartest.h \
+    virtualframe.h \
+    actionmanager.h
 
 RESOURCES += \
     rest.qrc

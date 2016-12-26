@@ -1,3 +1,4 @@
+#include <QPaintEngine>
 #include <QContextMenuEvent>
 #include <QSettings>
 #include <QColorDialog>
@@ -8,70 +9,40 @@
 #include <QApplication>
 #include "titlebartest.h"
 #include "ui_titlebartest.h"
+#include "actionmanager.h"
+#include "virtualframe.h"
 
 TitleBarTest::TitleBarTest(QWidget *parent) :
     QWidget(parent, Qt::FramelessWindowHint | Qt::WindowSystemMenuHint),
     ui(new Ui::TitleBarTest)
 {
     ui->setupUi(this);
+
     QSettings settings(QString("%1\\%2").arg(QApplication::applicationDirPath()).arg("MViewsSettings.ini"),QSettings::IniFormat);
-    QPoint initPos(settings.value("WindowPosX","").toInt(),settings.value("WindowPosY","").toInt());
-    int tHeight = settings.value("WindowHeight","").toInt();
-    int tWidth = settings.value("WindowWidth","").toInt();
-    QStringList wColorRGB=settings.value("WindowColor","").toString().split("_");
+    QByteArray geom = settings.value("Geometry").toByteArray();
     QPalette pal =palette();
-    if(wColorRGB.count()!=3)
-    {
-        pal.setColor(QPalette::Background,Qt::black);
-    }
-    else
-    {
-        QColor wCollor=QColor(QString(wColorRGB.at(0)).toInt(),QString(wColorRGB.at(1))
-                              .toInt(),QString(wColorRGB.at(2)).toInt());
-        pal.setColor(QPalette::Background,wCollor);
-    }
-    if(tHeight==0||tWidth==0)
-    {
-        this->resize(500,500);
-    }
-    else
-    {
-        this->resize(tWidth,tHeight);
-    }
+    restoreGeometry(geom);
+    pal.setColor(QPalette::Background,settings.value("color").value<QColor>());
+
 
     QPalette pal1 =palette();
     pal1.setColor(QPalette::Background,Qt::white);
     ui->widget->setPalette(pal1);
     this->setPalette(pal);
-    this->installEventFilter(this);
-    this->setAttribute(Qt::WA_Hover);
-    QAction *colorChange = new QAction(tr("Color"), this);
-    connect(colorChange, SIGNAL(triggered()), this, SLOT(chooseColor()));
-    addAction(colorChange);
-    setContextMenuPolicy(Qt::DefaultContextMenu);
+
+//    this->installEventFilter(this);
+
+
+    new VirtualFrame(this);
+    new ActionManager(this);
 }
 
 TitleBarTest::~TitleBarTest()
 {
     QSettings settings(QString("%1\\%2").arg(QApplication::applicationDirPath()).arg("MViewsSettings.ini"),QSettings::IniFormat);
-    settings.setValue("WindowHeight",this->height());
-    settings.setValue("WindowWidth",this->width());
-    QPoint wPos=frameGeometry().topLeft();
-    settings.setValue("WindowPosX",wPos.x());
-    settings.setValue("WindowPosY",wPos.y());
-    QColor saveCol=this->palette().color(QPalette::Background);
-    settings.setValue("WindowColor",QString("%1_%2_%3").arg(saveCol.red()).arg(saveCol.green()).arg(saveCol.blue()));
+    settings.setValue("geometry", saveGeometry());
+    settings.setValue("color", this->palette().color(QPalette::Background));
     delete ui;
-}
-
-void TitleBarTest::chooseColor()
-{
-
-    QColor color= QColorDialog::getColor(Qt::green, this);
-    QPalette pal =palette();
-    pal.setColor(QPalette::Background,
-                 color);
-    this->setPalette(pal);
 }
 
 void TitleBarTest::mousePressEvent(QMouseEvent *event)
@@ -121,6 +92,15 @@ void TitleBarTest::mouseReleaseEvent(QMouseEvent *event)
     changeHeightBottom=false;
 }
 
+void TitleBarTest::paintEvent(QPaintEvent *event)
+{
+    event->region();
+//    qDebug()<<event->type();
+}
+
+
+
+
 void TitleBarTest::mouseMoveEvent(QMouseEvent *event)
 {
     QPoint cPos=event->globalPos();
@@ -135,7 +115,7 @@ void TitleBarTest::mouseMoveEvent(QMouseEvent *event)
     {
         QRect opa=geometry();
         opa.setLeft(std::min(cPos.x(),wPos.x()+width()-minimumWidth()));
-        this->setGeometry((opa));
+        this->setGeometry(opa);
     }
     if(changeWidthRight)
     {
@@ -154,47 +134,20 @@ void TitleBarTest::mouseMoveEvent(QMouseEvent *event)
         this->resize(width(),height()+dy);
     }
     this->setCursor(opaCurs);
-
 }
 
-
-
-bool TitleBarTest::eventFilter(QObject *object, QEvent *event)
+void TitleBarTest::switcWMode(const Qt::WindowStates& wStat)
 {
-    QPoint cPos=QCursor::pos();
-    QPoint wPos=frameGeometry().topLeft();
-    if (object == this && event->type() == QEvent::HoverMove&&!mPressedMark) {
-        bool right = wPos.x()+width()-cPos.x()<5;
-        bool left = cPos.x()-wPos.x()<5;
-        bool top = cPos.y()-wPos.y()<5;
-        bool bottom = wPos.y()+height()-cPos.y()<5;
-
-        if((left&&top)||(right&&bottom))
-        {
-            opaCurs.setShape(Qt::SizeFDiagCursor);
-        }
-        else if((right&&top)||(left&&bottom))
-        {
-            opaCurs.setShape(Qt::SizeBDiagCursor);
-        }
-        else if(right||left)
-        {
-            opaCurs.setShape(Qt::SizeHorCursor);
-        }
-        else if(top||bottom)
-        {
-            opaCurs.setShape(Qt::SizeVerCursor);
-        }
-        else
-        {
-            opaCurs.setShape(Qt::ArrowCursor);
-        }
-
-        this->setCursor(opaCurs);
-        return true;
+    if(wStat==Qt::WindowMaximized)
+    {
+        ui->verticalLayout->setContentsMargins(0, 0, 0, 0);
     }
-    return false;
+    else
+    {
+        ui->verticalLayout->setContentsMargins(5, 0, 5, 5);
+    }
 }
+
 
 void TitleBarTest::contextMenuEvent(QContextMenuEvent *event)
 {
