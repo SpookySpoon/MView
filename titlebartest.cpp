@@ -1,3 +1,4 @@
+#include <QDesktopWidget>
 #include <QPaintEngine>
 #include <QContextMenuEvent>
 #include <QSettings>
@@ -19,9 +20,11 @@ TitleBarTest::TitleBarTest(QWidget *parent) :
     ui->setupUi(this);
 
     QSettings settings(QString("%1\\%2").arg(QApplication::applicationDirPath()).arg("MViewsSettings.ini"),QSettings::IniFormat);
-    QByteArray geom = settings.value("Geometry").toByteArray();
+    geom = settings.value("Geometry").toByteArray();
     QPalette pal =palette();
     restoreGeometry(geom);
+    setWindowState(Qt::WindowStates(settings.value("winState").toInt()));
+    switcWMode(windowState());
     pal.setColor(QPalette::Background,settings.value("color").value<QColor>());
 
 
@@ -30,74 +33,109 @@ TitleBarTest::TitleBarTest(QWidget *parent) :
     ui->widget->setPalette(pal1);
     this->setPalette(pal);
 
-//    this->installEventFilter(this);
-
 
     new VirtualFrame(this);
     new ActionManager(this);
+    qDebug()<<this->windowState();
 }
 
 TitleBarTest::~TitleBarTest()
 {
     QSettings settings(QString("%1\\%2").arg(QApplication::applicationDirPath()).arg("MViewsSettings.ini"),QSettings::IniFormat);
-    settings.setValue("geometry", saveGeometry());
+    settings.setValue("geometry", geom);
     settings.setValue("color", this->palette().color(QPalette::Background));
+    settings.setValue("winState", QString("%1").arg(windowState()));
     delete ui;
 }
 
 void TitleBarTest::mousePressEvent(QMouseEvent *event)
 {
-    mPressedMark=true;
     QPoint cPos=event->pos();
     QPoint wPos=frameGeometry().topLeft();
     QWidget* chAt=this->childAt(cPos);
     if(!chAt)
     {
-        if(cPos.x()<5)
+        if(this->windowState()!=Qt::WindowMaximized)
         {
-            changeWidthLeft=true;
-        }
-        else if(width()-cPos.x()<5)
-        {
-            changeWidthRight=true;
-        }
-        if(cPos.y()<5)
-        {
-            changeHeightTop=true;
-        }
-        else if(height()-cPos.y()<5)
-        {
-            changeHeightBottom=true;
-        }
-        if(changeWidthLeft||changeWidthRight||changeHeightTop||changeHeightBottom)
-        {
-            return;
+            if(cPos.x()<5)
+            {
+                changeWidthLeft=true;
+            }
+            else if(width()-cPos.x()<5)
+            {
+                changeWidthRight=true;
+            }
+            if(cPos.y()<5)
+            {
+                changeHeightTop=true;
+            }
+            else if(height()-cPos.y()<5)
+            {
+                changeHeightBottom=true;
+            }
+            if((changeWidthLeft||changeWidthRight||changeHeightTop||changeHeightBottom))
+            {
+                return;
+            }
         }
         if (event->button() == Qt::LeftButton) {
             mPressed=true;
             pos = event->globalPos() - wPos;
             event->accept();
+            qDebug()<<pos;
         }
     }
 }
 void TitleBarTest::mouseReleaseEvent(QMouseEvent *event)
 {
-    mPressedMark=false;
-    if (event->button() == Qt::LeftButton) {
-        mPressed=false;
-    }
     changeWidthLeft=false;
     changeWidthRight=false;
     changeHeightTop=false;
     changeHeightBottom=false;
-}
+    QRect rec = QApplication::desktop()->availableGeometry();
+    if(event->globalPos().x()==0)
+    {
+        if(mPressed)
+        {
+            mPressed=false;
+            resize(rec.width()/2,rec.height());
+            move(0,0);
+            maximizeWindow=true;
+            return;
+        }
+    }
+    if(event->globalPos().x()==rec.width()-1)
+    {
+        if(mPressed)
+        {
+            mPressed=false;
+            resize(rec.width()/2,rec.height());
+            move(rec.width()/2,0);
+            maximizeWindow=true;
+            return;
+        }
+    }
+    if(event->globalPos().y()==0)
+    {
+        if(mPressed)
+        {
+            mPressed=false;
+            this->setWindowState(Qt::WindowMaximized);
+            return;
+        }
+        else
+        {
+            move(this->frameGeometry().topLeft().x(),0);
+            resize(width(),rec.height());
+            maximizeWindow=true;
+        }
+    }
+    if(this->windowState()!=Qt::WindowMaximized)
+    {
+        geom = saveGeometry();
+    }
 
-void TitleBarTest::paintEvent(QPaintEvent *event)
-{
-    event->region();
-//    qDebug()<<event->type();
 }
-
 
 
 
@@ -105,8 +143,27 @@ void TitleBarTest::mouseMoveEvent(QMouseEvent *event)
 {
     QPoint cPos=event->globalPos();
     QPoint wPos=frameGeometry().topLeft();
-
     if (mPressed) {
+        if(this->windowState()==Qt::WindowMaximized||maximizeWindow)
+        {
+            double proportion = pos.x()/(double)width();
+            int rightPos= width()-pos.x();
+            this->setWindowState(Qt::WindowNoState);
+            maximizeWindow=false;
+            restoreGeometry(geom);
+            if(proportion>0.5)
+            {
+                pos.setX(std::max(width()-rightPos,width()/2));
+            }
+            else
+            {
+                pos.setX(std::min(pos.x()+6,width()/2));
+            }
+            if(pos.y()<6)
+            {
+                pos.setY(6);
+            }
+        }
         move(event->globalPos() - pos);
         event->accept();
         return;
@@ -173,5 +230,8 @@ void TitleBarTest::on_puttonRestoreWin_clicked()
 
 void TitleBarTest::on_buttonMinimize_clicked()
 {
-    this->setWindowState(Qt::WindowMinimized);
+    QMessageBox opa;
+    opa.setText(QString("%1").arg(this->windowState()));
+    opa.exec();
+//    this->setWindowState(Qt::WindowMinimized);
 }

@@ -22,9 +22,13 @@ bool VirtualFrame::eventFilter(QObject *, QEvent *event)
 //        case QEvent::Paint:
 //            return true;
         case QEvent::HoverMove:
-            mouseHover(static_cast<QMouseEvent*>(event));
+            if(someWid->windowState()!=Qt::WindowMaximized)
+            {
+                mouseHover(static_cast<QMouseEvent*>(event));
+            }
             return true;
         case QEvent::WindowStateChange:
+            qDebug()<<"change";
             someWid->switcWMode(someWid->windowState());
             return true;
         default:
@@ -42,7 +46,6 @@ void VirtualFrame::mouseHover(QMouseEvent *event)
     bool left = cPos.x()-wPos.x()<5;
     bool top = cPos.y()-wPos.y()<5;
     bool bottom = wPos.y()+someWid->height()-cPos.y()<5;
-
     if((left&&top)||(right&&bottom))
     {
         opaCurs.setShape(Qt::SizeFDiagCursor);
