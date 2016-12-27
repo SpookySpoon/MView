@@ -24,6 +24,7 @@ private:
     void mouseRelease(QMouseEvent *event);
 
 
+
     bool mPressed=false;
     bool maximizeWindow=false;
     bool changeWidthLeft=false;
@@ -38,6 +39,4 @@ private:
     QCursor opaCurs;
 protected:
     bool eventFilter(QObject *watched, QEvent *event) Q_DECL_OVERRIDE;
-
-
 };

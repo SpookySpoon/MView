@@ -135,6 +135,7 @@ void VirtualFrame::mouseHover(QMouseEvent *event)
     bool left = cPos.x()-wPos.x()<borderWidth;
     bool top = cPos.y()-wPos.y()<borderWidth;
     bool bottom = wPos.y()+someWid->height()-cPos.y()<borderWidth;
+
     if((left&&top)||(right&&bottom))
     {
         opaCurs.setShape(Qt::SizeFDiagCursor);

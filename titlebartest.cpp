@@ -1,13 +1,3 @@
-#include <QDesktopWidget>
-#include <QPaintEngine>
-#include <QContextMenuEvent>
-#include <QSettings>
-#include <QColorDialog>
-#include <QHoverEvent>
-#include <QDebug>
-#include <QMouseEvent>
-#include <QMessageBox>
-#include <QApplication>
 #include "titlebartest.h"
 #include "ui_titlebartest.h"
 #include "actionmanager.h"
@@ -23,8 +13,9 @@ TitleBarTest::TitleBarTest(QWidget *parent) :
     pal1.setColor(QPalette::Background,Qt::white);
     ui->widget->setPalette(pal1);
 
+    am=new ActionManager(this);
     new VirtualFrame(this);
-    new ActionManager(this);
+
 }
 
 TitleBarTest::~TitleBarTest()
@@ -38,10 +29,12 @@ void TitleBarTest::switcWMode(const Qt::WindowStates& wStat)
     if(wStat==Qt::WindowMaximized)
     {
         ui->verticalLayout->setContentsMargins(0, 0, 0, 0);
+        am->switchStates(true);
     }
     else
     {
         ui->verticalLayout->setContentsMargins(5, 0, 5, 5);
+        am->switchStates(false);
     }
 }
 

@@ -2,6 +2,7 @@
 
 #include <QWidget>
 
+class ActionManager;
 namespace Ui {
 class TitleBarTest;
 }
@@ -20,5 +21,6 @@ private slots:
     void on_buttonMinimize_clicked();
 private:
     Ui::TitleBarTest *ui;
+    ActionManager* am;
 };
 
