@@ -128,8 +128,10 @@ void TitleBarTest::mouseReleaseEvent(QMouseEvent *event)
             move(this->frameGeometry().topLeft().x(),0);
             resize(width(),rec.height());
             maximizeWindow=true;
+            return;
         }
     }
+    mPressed=false;
     if(this->windowState()!=Qt::WindowMaximized)
     {
         geom = saveGeometry();
