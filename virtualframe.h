@@ -23,8 +23,6 @@ private:
     void mouseMove(QMouseEvent *event);
     void mouseRelease(QMouseEvent *event);
 
-
-
     bool mPressed=false;
     bool maximizeWindow=false;
     bool changeWidthLeft=false;

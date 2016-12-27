@@ -41,6 +41,10 @@ bool VirtualFrame::eventFilter(QObject *, QEvent *event)
             }
             return true;
         case QEvent::WindowStateChange:
+            if(someWid->windowState()==Qt::WindowNoState)
+            {
+                someWid->restoreGeometry(geom);
+            }
             someWid->switcWMode(someWid->windowState());
             return true;
         default:
