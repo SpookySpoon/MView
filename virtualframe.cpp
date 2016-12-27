@@ -1,4 +1,5 @@
 #include <QApplication>
+#include <QSettings>
 #include <QDesktopWidget>
 #include <QDebug>
 #include <QMessageBox>
@@ -11,11 +12,15 @@
 VirtualFrame::VirtualFrame(TitleBarTest* parent)
     :QObject(parent), someWid(parent)
 {
-    someWid->installEventFilter(this);
-    someWid->setAttribute(Qt::WA_Hover);
-
+    setUpFrameGeometry();
 }
 
+VirtualFrame::~VirtualFrame()
+{
+    saveFrameSettings();
+}
+
+//Тут каждому евенту назначается обрабатывающая функция. Все функции ниже.
 bool VirtualFrame::eventFilter(QObject *, QEvent *event)
 {
     switch (event->type())
@@ -43,29 +48,27 @@ bool VirtualFrame::eventFilter(QObject *, QEvent *event)
     }
 }
 
-
 void VirtualFrame::mousePress(QMouseEvent *event)
 {
     QPoint cPos=event->pos();
-    QPoint wPos=someWid->frameGeometry().topLeft();
     QWidget* chAt=someWid->childAt(cPos);
     if(!chAt)
     {
         if(someWid->windowState()!=Qt::WindowMaximized)
         {
-            if(cPos.x()<5)
+            if(cPos.x()<borderWidth)
             {
                 changeWidthLeft=true;
             }
-            else if(someWid->width()-cPos.x()<5)
+            else if(someWid->width()-cPos.x()<borderWidth)
             {
                 changeWidthRight=true;
             }
-            if(cPos.y()<5)
+            if(cPos.y()<borderWidth)
             {
                 changeHeightTop=true;
             }
-            else if(someWid->height()-cPos.y()<5)
+            else if(someWid->height()-cPos.y()<borderWidth)
             {
                 changeHeightBottom=true;
             }
@@ -76,9 +79,8 @@ void VirtualFrame::mousePress(QMouseEvent *event)
         }
         if (event->button() == Qt::LeftButton) {
             mPressed=true;
-            pos = event->globalPos() - wPos;
+            pos = event->globalPos() - someWid->frameGeometry().topLeft();
             event->accept();
-            qDebug()<<pos;
         }
     }
 }
@@ -90,24 +92,13 @@ void VirtualFrame::mouseRelease(QMouseEvent *event)
     changeHeightTop=false;
     changeHeightBottom=false;
     QRect rec = QApplication::desktop()->availableGeometry();
-    if(event->globalPos().x()==0)
+    if(event->globalPos().x()==0||event->globalPos().x()==rec.width()-1)
     {
         if(mPressed)
         {
             mPressed=false;
             someWid->resize(rec.width()/2,rec.height());
-            someWid->move(0,0);
-            maximizeWindow=true;
-            return;
-        }
-    }
-    if(event->globalPos().x()==rec.width()-1)
-    {
-        if(mPressed)
-        {
-            mPressed=false;
-            someWid->resize(rec.width()/2,rec.height());
-            someWid->move(rec.width()/2,0);
+            someWid->move(event->globalPos().x()/2,0);
             maximizeWindow=true;
             return;
         }
@@ -129,7 +120,7 @@ void VirtualFrame::mouseRelease(QMouseEvent *event)
         }
     }
     mPressed=false;
-    if(someWid->windowState()!=Qt::WindowMaximized)
+    if(someWid->windowState()!=Qt::WindowMaximized&&!maximizeWindow)
     {
         geom = someWid->saveGeometry();
     }
@@ -137,14 +128,13 @@ void VirtualFrame::mouseRelease(QMouseEvent *event)
 
 void VirtualFrame::mouseHover(QMouseEvent *event)
 {
-    QCursor opaCurs;
     QPoint cPos=event->globalPos();
     QPoint wPos=someWid->frameGeometry().topLeft();
 
-    bool right = wPos.x()+someWid->width()-cPos.x()<5;
-    bool left = cPos.x()-wPos.x()<5;
-    bool top = cPos.y()-wPos.y()<5;
-    bool bottom = wPos.y()+someWid->height()-cPos.y()<5;
+    bool right = wPos.x()+someWid->width()-cPos.x()<borderWidth;
+    bool left = cPos.x()-wPos.x()<borderWidth;
+    bool top = cPos.y()-wPos.y()<borderWidth;
+    bool bottom = wPos.y()+someWid->height()-cPos.y()<borderWidth;
     if((left&&top)||(right&&bottom))
     {
         opaCurs.setShape(Qt::SizeFDiagCursor);
@@ -170,8 +160,16 @@ void VirtualFrame::mouseHover(QMouseEvent *event)
 
 void VirtualFrame::mouseMove(QMouseEvent *event)
 {
-    QPoint cPos=event->globalPos();
-    QPoint wPos=someWid->frameGeometry().topLeft();
+    if(moveFrame(event->globalPos()))
+    {
+        event->accept();
+        return;
+    }
+    resizeFrameWithMouse(event->globalPos());
+}
+
+bool VirtualFrame::moveFrame(const QPoint& mousePosition)
+{
     if (mPressed) {
         if(someWid->windowState()==Qt::WindowMaximized||maximizeWindow)
         {
@@ -186,44 +184,46 @@ void VirtualFrame::mouseMove(QMouseEvent *event)
             }
             else
             {
-                pos.setX(std::min(pos.x()+6,someWid->width()/2));
+                pos.setX(std::min(pos.x()+borderWidth,someWid->width()/2));
             }
-            if(pos.y()<6)
+            if(pos.y()<borderWidth)
             {
-                pos.setY(6);
+                pos.setY(borderWidth);
             }
         }
-        someWid->move(event->globalPos() - pos);
-        event->accept();
-        return;
+        someWid->move(mousePosition - pos);
+        return true;
     }
+    return false;
+}
+
+void VirtualFrame::resizeFrameWithMouse(const QPoint& mousePosition)
+{
+    QPoint wPos=someWid->frameGeometry().topLeft();
     if(changeWidthLeft)
     {
         QRect opa=someWid->geometry();
-        opa.setLeft(std::min(cPos.x(),wPos.x()+someWid->width()-someWid->minimumWidth()));
+        opa.setLeft(std::min(mousePosition.x(),wPos.x()+someWid->width()-someWid->minimumWidth()));
         someWid->setGeometry(opa);
     }
     if(changeWidthRight)
     {
-        int dx=cPos.x()-wPos.x()-someWid->width();
+        int dx=mousePosition.x()-wPos.x()-someWid->width();
         someWid->resize(someWid->width()+dx,someWid->height());
     }
     if(changeHeightTop)
     {
         QRect opa=someWid->geometry();
-        opa.setTop(std::min(cPos.y(),wPos.y()+someWid->height()-someWid->minimumHeight()));
+        opa.setTop(std::min(mousePosition.y(),wPos.y()+someWid->height()-someWid->minimumHeight()));
         someWid->setGeometry(opa);
     }
     if(changeHeightBottom)
     {
-        int dy=cPos.y()-wPos.y()-someWid->height();
+        int dy=mousePosition.y()-wPos.y()-someWid->height();
         someWid->resize(someWid->width(),someWid->height()+dy);
     }
     someWid->setCursor(opaCurs);
 }
-
-
-
 
 
 
@@ -240,4 +240,27 @@ void VirtualFrame::setBorderWidth(const qint16 &bWidth)
 qint16 VirtualFrame::getBorderWidth() const
 {
     return borderWidth;
+}
+
+void VirtualFrame::setUpFrameGeometry()
+{
+    QSettings settings(QString("%1\\%2").arg(QApplication::applicationDirPath()).arg("MViewsSettings.ini"),QSettings::IniFormat);
+    geom = settings.value("Geometry").toByteArray();
+    QPalette pal =someWid->palette();
+    someWid->restoreGeometry(geom);
+    someWid->setWindowState(Qt::WindowStates(settings.value("winState").toInt()));
+    someWid->switcWMode(someWid->windowState());
+    pal.setColor(QPalette::Background,settings.value("color").value<QColor>());
+    someWid->setPalette(pal);
+    someWid->installEventFilter(this);
+    someWid->setAttribute(Qt::WA_Hover);
+    setBorderWidth(5);
+}
+
+void VirtualFrame::saveFrameSettings()
+{
+    QSettings settings(QString("%1\\%2").arg(QApplication::applicationDirPath()).arg("MViewsSettings.ini"),QSettings::IniFormat);
+    settings.setValue("geometry", geom);
+    settings.setValue("color", someWid->palette().color(QPalette::Background));
+    settings.setValue("winState", QString("%1").arg(someWid->windowState()));
 }

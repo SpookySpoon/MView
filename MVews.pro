@@ -23,5 +23,4 @@ HEADERS += \
     virtualframe.h \
     actionmanager.h
 
-RESOURCES += \
-    rest.qrc
+RESOURCES +=

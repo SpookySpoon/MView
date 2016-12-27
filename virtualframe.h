@@ -10,15 +10,19 @@ class VirtualFrame: public QObject
     Q_OBJECT
 public:
     explicit VirtualFrame(TitleBarTest* someWid);
+    ~VirtualFrame();
     void setBorderWidth(const qint16 &bWidth);
     qint16 getBorderWidth() const;
 private:
+    void setUpFrameGeometry();
+    void saveFrameSettings();
+    void resizeFrameWithMouse(const QPoint& mousePosition);
+    bool moveFrame(const QPoint& mousePosition);
     void mousePress(QMouseEvent *event);
     void mouseHover(QMouseEvent *event);
     void mouseMove(QMouseEvent *event);
-
     void mouseRelease(QMouseEvent *event);
-    void contextMenu(QContextMenuEvent *event);
+
 
     bool mPressed=false;
     bool maximizeWindow=false;
