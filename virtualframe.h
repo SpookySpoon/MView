@@ -13,13 +13,25 @@ public:
     void setBorderWidth(const qint16 &bWidth);
     qint16 getBorderWidth() const;
 private:
+    void mousePress(QMouseEvent *event);
     void mouseHover(QMouseEvent *event);
     void mouseMove(QMouseEvent *event);
-    void mousePress(QMouseEvent *event);
+
     void mouseRelease(QMouseEvent *event);
     void contextMenu(QContextMenuEvent *event);
+
+    bool mPressed=false;
+    bool maximizeWindow=false;
+    bool changeWidthLeft=false;
+    bool changeWidthRight=false;
+    bool changeHeightTop=false;
+    bool changeHeightBottom=false;
+
+    QByteArray geom;
     qint16 borderWidth;
     TitleBarTest* someWid;
+    QPoint pos;
+    QCursor opaCurs;
 protected:
     bool eventFilter(QObject *watched, QEvent *event) Q_DECL_OVERRIDE;
 
