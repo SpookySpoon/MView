@@ -11,11 +11,11 @@
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
-//    TitleBarTest t;
-//    t.show();
+    TitleBarTest t;
+    t.show();
 
-    QWidget opaW(nullptr,Qt::FramelessWindowHint | Qt::WindowSystemMenuHint);
-    resW resizeMan(&opaW);
+//    QWidget opaW(nullptr,Qt::FramelessWindowHint | Qt::WindowSystemMenuHint);
+//    resW resizeMan(&opaW);
 
     return a.exec();
 }
