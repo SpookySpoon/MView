@@ -1,3 +1,5 @@
+#include <QDebug>
+#include <QDesktopWidget>
 #include "titlebartest.h"
 #include "ui_titlebartest.h"
 #include "actionmanager.h"
@@ -15,7 +17,9 @@ TitleBarTest::TitleBarTest(QWidget *parent) :
 
     am=new ActionManager(this);
     new VirtualFrame(this);
-
+    ui->buttonClose->setIcon(QApplication::style()->standardIcon(QStyle::SP_TitleBarCloseButton));
+    ui->buttonMinimize->setIcon(QApplication::style()->standardIcon(QStyle::SP_TitleBarMinButton));
+//    ui->buttonClose->setStyle(QStyle::SP_DialogCloseButton);
 }
 
 TitleBarTest::~TitleBarTest()
@@ -28,11 +32,13 @@ void TitleBarTest::switcWMode(const Qt::WindowStates& wStat)
 {
     if(wStat==Qt::WindowMaximized)
     {
+        ui->buttonRestoreWin->setIcon(QApplication::style()->standardIcon(QStyle::SP_TitleBarNormalButton));
         ui->verticalLayout->setContentsMargins(0, 0, 0, 0);
         am->switchStates(true);
     }
     else
     {
+        ui->buttonRestoreWin->setIcon(QApplication::style()->standardIcon(QStyle::SP_TitleBarMaxButton));
         ui->verticalLayout->setContentsMargins(5, 0, 5, 5);
         am->switchStates(false);
     }
@@ -44,15 +50,15 @@ void TitleBarTest::on_buttonClose_clicked()
     this->close();
 }
 
-void TitleBarTest::on_puttonRestoreWin_clicked()
+void TitleBarTest::on_buttonRestoreWin_clicked()
 {
     if(this->windowState()==Qt::WindowMaximized)
     {
-        this->setWindowState(Qt::WindowNoState);
+        this->showNormal();
     }
     else
     {
-        this->setWindowState(Qt::WindowMaximized);
+        this->showMaximized();
     }
 }
 

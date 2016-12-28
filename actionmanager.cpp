@@ -1,4 +1,6 @@
 #include <QMouseEvent>
+#include <QStyle>
+#include <QApplication>
 #include <QColorDialog>
 #include <QAction>
 #include <QEvent>
@@ -16,11 +18,16 @@ ActionManager::ActionManager(TitleBarTest* someWidget)
     QAction *minimize = new QAction(tr("Minimize"), targetW);
     QAction *maximize = new QAction(tr("Maximize"), targetW);
 
+    close->setIcon(QApplication::style()->standardIcon(QStyle::SP_TitleBarCloseButton));
+    minimize->setIcon(QApplication::style()->standardIcon(QStyle::SP_TitleBarMinButton));
+    restore->setIcon(QApplication::style()->standardIcon(QStyle::SP_TitleBarNormalButton));
+    maximize->setIcon(QApplication::style()->standardIcon(QStyle::SP_TitleBarMaxButton));
+
     connect(colorChange, SIGNAL(triggered()), this, SLOT(chooseColor()));
     connect(close, SIGNAL(triggered()), targetW, SLOT(close()));
-    connect(restore, SIGNAL(triggered()), targetW, SLOT(on_puttonRestoreWin_clicked()));
+    connect(restore, SIGNAL(triggered()), targetW, SLOT(on_buttonRestoreWin_clicked()));
     connect(minimize, SIGNAL(triggered()), targetW, SLOT(on_buttonMinimize_clicked()));
-    connect(maximize, SIGNAL(triggered()), targetW, SLOT(on_puttonRestoreWin_clicked()));
+    connect(maximize, SIGNAL(triggered()), targetW, SLOT(on_buttonRestoreWin_clicked()));
 
     menu.addAction(colorChange);
     menu.addAction(restore);
@@ -37,14 +44,18 @@ ActionManager::ActionManager(TitleBarTest* someWidget)
 void ActionManager::callMenu(QPoint e)
 {
     int border =5;
+    if(targetW->windowState()==Qt::WindowMaximized)
+    {
+        border=0;
+    }
     int right=targetW->geometry().right()-border;
     int left=targetW->geometry().left()+border;
     int top=targetW->geometry().top()+border;
     int bottom=targetW->geometry().bottom()-border;
     QPoint point=targetW->frameGeometry().topLeft()+e;
-    if(!(point.x()>left&&point.x()<right))
+    if(!(point.x()>=left&&point.x()<=right))
     {return;}
-    if(!(point.y()<bottom&&point.y()>top))
+    if(!(point.y()<=bottom&&point.y()>=top))
     {return;}
     QWidget* child=targetW->childAt(e);
     if(!child)

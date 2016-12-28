@@ -83,12 +83,12 @@
         </size>
        </property>
        <property name="text">
-        <string>-</string>
+        <string/>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="puttonRestoreWin">
+      <widget class="QPushButton" name="buttonRestoreWin">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
          <horstretch>0</horstretch>
@@ -108,7 +108,7 @@
         </size>
        </property>
        <property name="text">
-        <string>D</string>
+        <string/>
        </property>
       </widget>
      </item>
@@ -136,7 +136,7 @@
         </size>
        </property>
        <property name="text">
-        <string>X</string>
+        <string/>
        </property>
       </widget>
      </item>

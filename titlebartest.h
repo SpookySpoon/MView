@@ -17,7 +17,7 @@ public:
     void switcWMode(const Qt::WindowStates& wState);
 private slots:
     void on_buttonClose_clicked();
-    void on_puttonRestoreWin_clicked();
+    void on_buttonRestoreWin_clicked();
     void on_buttonMinimize_clicked();
 private:
     Ui::TitleBarTest *ui;

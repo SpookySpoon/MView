@@ -13,7 +13,8 @@ TEMPLATE = app
 SOURCES += main.cpp \
     titlebartest.cpp \
     virtualframe.cpp \
-    actionmanager.cpp
+    actionmanager.cpp \
+    resizermaf.cpp
 
 FORMS += \
     titlebartest.ui
@@ -21,6 +22,7 @@ FORMS += \
 HEADERS += \
     titlebartest.h \
     virtualframe.h \
-    actionmanager.h
+    actionmanager.h \
+    resizermaf.h
 
 RESOURCES +=

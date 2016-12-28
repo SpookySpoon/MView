@@ -35,7 +35,7 @@ bool VirtualFrame::eventFilter(QObject *, QEvent *event)
             mouseMove(static_cast<QMouseEvent*>(event));
             return true;
         case QEvent::HoverMove:
-            if(someWid->windowState()!=Qt::WindowMaximized)
+            if(someWid->windowState()!=Qt::WindowMaximized&&!mousePressed)
             {
                 mouseHover(static_cast<QMouseEvent*>(event));
             }
@@ -54,6 +54,7 @@ bool VirtualFrame::eventFilter(QObject *, QEvent *event)
 
 void VirtualFrame::mousePress(QMouseEvent *event)
 {
+    mousePressed=true;
     QPoint cPos=event->pos();
     QWidget* chAt=someWid->childAt(cPos);
     if(!chAt)
@@ -91,18 +92,20 @@ void VirtualFrame::mousePress(QMouseEvent *event)
 
 void VirtualFrame::mouseRelease(QMouseEvent *event)
 {
+    mousePressed=false;
     changeWidthLeft=false;
     changeWidthRight=false;
     changeHeightTop=false;
     changeHeightBottom=false;
     QRect rec = QApplication::desktop()->availableGeometry();
-    if(event->globalPos().x()==0||event->globalPos().x()==rec.width()-1)
+    if(event->globalPos().x()==rec.left()||event->globalPos().x()==rec.right())
     {
         if(mPressed)
         {
             mPressed=false;
             someWid->resize(rec.width()/2,rec.height());
-            someWid->move(event->globalPos().x()/2,0);
+            int xPos=(event->globalPos().x()-rec.left())/2+rec.left();
+            someWid->move(xPos,rec.top());
             maximizeWindow=true;
             return;
         }
@@ -117,7 +120,7 @@ void VirtualFrame::mouseRelease(QMouseEvent *event)
         }
         else
         {
-            someWid->move(someWid->frameGeometry().topLeft().x(),0);
+            someWid->move(someWid->frameGeometry().topLeft().x(),rec.top());
             someWid->resize(someWid->width(),rec.height());
             maximizeWindow=true;
             return;
